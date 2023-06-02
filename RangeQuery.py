@@ -1,13 +1,19 @@
-class RangeQuery:
-    def __init__(self, data, func=min):
-        self.func = func
-        self._data = _data = [list(data)]
-        i, n = 1, len(_data[0])
-        while 2 * i <= n:
-            prev = _data[-1]
-            _data.append([func(prev[j], prev[j + i]) for j in range(n - 2 * i + 1)])
-            i <<= 1
+from math import log2
 
-    def query(self, begin, end):
-        depth = (end - begin).bit_length() - 1
-        return self.func(self._data[depth][begin], self._data[depth][end - (1 << depth)])
+
+class RangeQuery:
+    def __init__(self, a, func=min):
+        self.n = len(a)
+        self.func = func
+        self.st = [[0 for _ in range(self.n + 1)] for _ in range(20)]
+
+        self.st[0] = a.copy()
+        for i in range(1, self.n + 1):
+            j = 0
+            while j + (1 << i) <= self.n:
+                self.st[i][j] = self.func(self.st[i - 1][j], self.st[i - 1][j + (1 << (i - 1))])
+                j += 1
+
+    def query(self, L, R):
+        i = int(log2(R - L + 1))
+        return self.func(self.st[i][L], self.st[i][R - (1 << i) + 1])
